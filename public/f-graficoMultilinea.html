@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+</style>
+<body>
+
+<div id="my-graph"></div>
+
+<script src="/scripts/d3/d3.min.js"></script>
+<script>
+
+/*
+* L'obiettivo è di creare un grafico con due diversi set di dati.
+* Quindi il dato originario lo "divisiamo in due" attraverso la funzione nest.
+*/
+var data = [
+      { client: '1', date: '2014-01-01', amount: 10 },
+      { client: '1', date: '2014-02-01', amount: 20 },
+      { client: '1', date: '2014-03-01', amount: 40 },
+      { client: '1', date: '2014-04-01', amount: 80 },
+      { client: '2', date: '2014-01-01', amount: 12 },
+      { client: '2', date: '2014-02-01', amount: 22 },
+      { client: '2', date: '2014-03-01', amount: 31 },
+      { client: '2', date: '2014-04-01', amount: 44 }
+];
+
+
+drawGraph(data, '#my-graph');
+
+
+function drawGraph(data, target){
+
+    var margin = {top: 40, right: 40, bottom: 40, left: 40},
+        width = 380 - margin.left - margin.right,
+        height = 280 - margin.top - margin.bottom;
+
+    var parseDate = function(date){
+        return new Date(Date.parse(date));
+    }
+
+    var y = d3.scale.linear()
+              .range([height, 0]);
+
+    y.domain([0, d3.max(data, function(d) { return d.amount })]);
+
+     var x = d3.time.scale()
+              .domain(d3.extent(data, function(d) { return parseDate(d.date); }))
+              .range([0, width]);
+
+    /*
+    * Nell'asse delle x i tick devo mettere che sono 4 altrimenti si creano sovrapposizioni di tante date differenti. Sono 4 perchè 4 sono i dati che devo andare a graficare per ogni grafico (vedi dati e raggruppali per client).
+    */
+    var xAxis = d3.svg.axis()
+      .scale(x)         
+      .orient('bottom')
+      .ticks(4);
+
+    var yAxis = d3.svg.axis()
+      .scale(y)        
+      .orient('left')
+      .ticks(4);  
+
+    var svg = d3.select(target)
+        .append('svg')        
+        .attr('width', (width+margin.left+margin.right))
+        .attr('height', (height+margin.top+margin.bottom));
+
+    svg.append('g')            
+      .attr('class', 'x axis') 
+      .attr('transform', 'translate('+margin.left+','+(height+margin.top)+')')
+      .call(xAxis);    
+
+    svg.append('g')            
+      .attr('class', 'y axis')
+      .attr('transform', 'translate('+margin.left+','+margin.top+')')
+      .call(yAxis);   
+
+    var valueline = d3.svg.line()
+        .x(function(d) { return margin.left + x(parseDate(d.date)); })
+        .y(function(d) { return margin.top + y(d.amount); });
+
+
+    /*
+    * Modifichiamo il tipo di raggruppamento dei dati usando il nest è come se usiamo il "group by" di SQL. The resulting output is a tree rather than a flat table.
+    */
+    data = d3.nest()
+          .key(function(d){
+            return d.client;
+          })
+          .entries(data);
+
+    console.log(JSON.stringify(data));
+
+    /*
+    * Sarà sufficiente ciclare sui dati a nostra disposizione per disegnare delle linee.
+    */
+    data.forEach(function(d, i) {
+        svg.append("path")
+            .attr("class", "line")
+            .attr("d", valueline(d.values));
+
+        svg.selectAll("circles")
+          .data(d.values)
+          .enter().append("circle")
+          .style("fill", "steelblue")
+          .attr("cx", function(_d) { return margin.left + x(parseDate(_d.date)); })
+          .attr("r", 3)
+          .attr("cy", function(_d) { return margin.top + y(_d.amount); });
+          
+    });
+}
+
+</script>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+</style>
+<body>
+
+<!-- First Example -->
+<p class="hover-me">
+  Hover over me!
+</p>
+
+<!-- Dynamic Property -->
+<div class="position">
+  Elemento con indice dispari
+</div>
+<div class="position">
+  Elemento con indice pari
+</div>
+
+<!-- Enter, Exit and Transition (eet) -->
+<div class="eet">
+  Elemento
+</div>
+<div class="eet">
+  Elemento
+</div>
+<div class="eet">
+  Elemento
+</div>
+<div class="eet">
+  Elemento
+</div>
+
+<svg height="400" width="400">
+  <circle cx="100" cy="100" r="100" stroke="black" stroke-width="3" fill="red" />
+</svg>
+
+
+
+
+<script src="/scripts/d3/d3.min.js"></script>
+<script>
+
+/*
+* First Example
+*/
+
+d3.selectAll('.hover-me')
+  .on('mouseover', function() {
+    this.style.backgroundColor = '#ccc';
+  })
+  .on('mouseleave', function() {
+    this.style.backgroundColor = '';
+});
+
+d3.selectAll("p").style("color", "green");
+
+/*
+* Dynamic Property
+*/
+
+d3.selectAll(".position").style("color", function(d, i) {
+  return i % 2 ? "#000" : "#e8e";
+});
+
+
+/*
+* Enter, Exit and Transition
+*/
+// Update…
+var eet = d3.select("body").selectAll(".eet")
+    .data([4, 8, 15, 16, 23, 42])
+    .text(String);
+
+// Enter…
+eet.enter().append("div")
+    .classed({"eet":true})
+    .text(String);
+
+// Exit…
+eet.exit().remove();
+
+// Transition
+var scale = 100;
+d3.selectAll("circle").data([50]).transition()
+    .duration(750)
+    .delay(function(d, i) { return i; })
+    .attr("r", function(d) { console.log(d); return Math.sqrt(d * scale); });
+
+
+
+
+var data = [
+      { client: '1', date: '2014-01-01', amount: 10 },
+      { client: '1', date: '2014-02-01', amount: 20 },
+      { client: '1', date: '2014-03-01', amount: 40 },
+      { client: '1', date: '2014-04-01', amount: 80 },
+      { client: '2', date: '2014-01-01', amount: 12 },
+      { client: '2', date: '2014-02-01', amount: 22 },
+      { client: '2', date: '2014-03-01', amount: 31 },
+      { client: '2', date: '2014-04-01', amount: 44 }
+];
+
+
+//Modifichiamo il tipo di raggruppamento dei dati usando il nest
+//è come se usiamo il "group by" di SQL.
+//The resulting output is a tree rather than a flat table.
+data = d3.nest()
+         .key(function(d){
+            return d.client;
+         })
+         .entries(data);
+
+console.log(JSON.stringify(data));
+
+</script>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+</style>
+<body>
+<script src="/scripts/d3/d3.min.js"></script>
+<script>
+
+var data = [
+      { date: '2014-01-01', amount: 10 },
+      { date: '2014-02-01', amount: 20 },
+      { date: '2014-03-01', amount: 40 },
+      { date: '2014-04-01', amount: 80 }
+    ];
+
+var max_y = d3.max(data, function(d, i) { return d.amount });
+
+var y = d3.scale.linear()
+  .domain([0, max_y])
+  .range([200, 0]);
+
+
+var max_min_x = d3.extent(data, function(d, i){ return d.date });
+
+var x = d3.time.scale()
+    .domain([
+      new Date(Date.parse(max_min_x[0])),
+      new Date(Date.parse(max_min_x[1]))
+    ])
+    .range([0, 300]);
+
+
+var xAxis = d3.svg.axis()
+  .scale(x)
+  .orient('bottom')
+  .ticks(4);
+
+var yAxis = d3.svg.axis()
+  .scale(y)
+  .orient('left')
+  .ticks(4);
+
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width', 380)
+    .attr('height', 280);
+
+svg.append('g')
+  .attr('class', 'x axis')
+  .attr('transform', 'translate(40,240)')
+  .call(xAxis);
+
+svg.append('g')
+  .attr('class', 'y axis')
+  .attr('transform', 'translate(40,40)')
+  .call(yAxis);
+
+
+/*
+* Creo le barre del grafico. Usando l'enter infatti creo elementi di tipo "bar" che ancora non esistono (vedi a-introduzione.html per capire cosa succede usando "enter"). Per decidere il punto esatto in cui disegnare le barre, uso le funzioni x e y definite prima (vedi b-assi.html).
+Per semplicità limitiamoci a traslare i risultati di 40 pixel, il margine definito in precedenza (vedi b-assi.html).
+*/
+svg.selectAll("bar")
+      .data(data)
+      .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", function(d) { return 40 + x(new Date(Date.parse(d.date))); })
+      .attr("width", 20)
+      .attr("y", function(d) { return 40 + y(d.amount); })
+      .attr("height", function(d) { return 200 - y(d.amount); });
+
+
+
+/*
+* Grafico 2 - con palline e line che uniscono le palline.
+*/
+var svg_2 = d3.select('body')
+    .append('svg')
+    .attr('width', 380)
+    .attr('height', 280);
+
+svg_2.append('g')
+  .attr('class', 'x axis')
+  .attr('transform', 'translate(40,240)')
+  .call(xAxis);
+
+svg_2.append('g')
+  .attr('class', 'y axis')
+  .attr('transform', 'translate(40,40)')
+  .call(yAxis);
+
+//fore the circle
+svg_2.selectAll("circles")
+      .data(data)
+      .enter().append("circle")
+      .style("fill", "steelblue")
+      .attr("cx", function(d) { return 40 + x(new Date(Date.parse(d.date))); })
+      .attr("r", 20) //raggio e quindi dimensione dei pallini
+      .attr("cy", function(d) { return 40 + y(d.amount); });
+
+//for the line
+var valueline = d3.svg.line()
+    .x(function(d) { return 40 + x(new Date(Date.parse(d.date))); })
+    .y(function(d) { return 40 + y(d.amount); });
+
+svg_2.append("path")
+        .attr("class", "line")
+        .attr("d", valueline(data));
+
+</script>
+</body>

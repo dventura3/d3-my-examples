@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+</style>
+<body>
+
+<div id="my-graph"></div>
+<div id="my-graph2"></div>
+
+<script src="/scripts/d3/d3.min.js"></script>
+<script>
+
+/*
+* I problemi che saltano subito all’occhio riguardano la mancanza di variabili per definire il margine e la dimensione del grafico e alcuni pezzi di codice – come il parsing della data – che vengono riscritti più volte.
+*
+* Creiamo le variabili margin, width e height, dove height e width dipendono dal margine assegnato e definiamo una funzione per il parsing della data.
+Al posto dei numeri hard code utilizziamo le variabili width, height e data per impostare i range a traslare gli elementi.
+Racchiudiamo il tutto in una funzione e richiamiamola passando l’array di elementi da rappresentare e il target su cui andare a rappresentare il nostro grafico.
+*/
+
+var data = [
+      { date: '2014-01-01', amount: 10 },
+      { date: '2014-02-01', amount: 20 },
+      { date: '2014-03-01', amount: 40 },
+      { date: '2014-04-01', amount: 80 }
+    ];
+
+var data2 = [
+      { date: '2014-01-01', amount: 50 },
+      { date: '2014-02-01', amount: 30 },
+      { date: '2014-03-01', amount: 30 },
+      { date: '2014-04-01', amount: 40 }
+    ];
+
+drawGraph(data, '#my-graph');
+drawGraph(data2, '#my-graph2');
+
+
+function drawGraph(data, target){
+
+    var margin = {top: 40, right: 40, bottom: 40, left: 40},
+        width = 380 - margin.left - margin.right,
+        height = 280 - margin.top - margin.bottom;
+
+    var parseDate = function(date){
+        return new Date(Date.parse(date));
+    }
+
+    var y = d3.scale.linear()
+              .range([height, 0]);
+
+    y.domain([0, d3.max(data, function(d) { return d.amount })]);
+
+    var x = d3.time.scale()
+              .domain([
+                d3.min(data, function(d) { return parseDate(d.date) }),
+                d3.max(data, function(d) { return parseDate(d.date) })
+              ])
+              .range([0, width]);
+
+    var xAxis = d3.svg.axis()
+      .scale(x)         
+      .orient('bottom')
+      .ticks(data.length);        
+
+    var yAxis = d3.svg.axis()
+      .scale(y)        
+      .orient('left')
+      .ticks(data.length);  
+
+    var svg = d3.select(target)
+        .append('svg')        
+        .attr('width', (width+margin.left+margin.right))
+        .attr('height', (height+margin.top+margin.bottom));
+
+    svg.append('g')            
+      .attr('class', 'x axis') 
+      .attr('transform', 'translate('+margin.left+','+(height+margin.top)+')')
+      .call(xAxis);    
+
+    svg.append('g')            
+      .attr('class', 'y axis')
+      .attr('transform', 'translate('+margin.left+','+margin.top+')')
+      .call(yAxis);   
+
+    var valueline = d3.svg.line()
+        .x(function(d) { return margin.left + x(parseDate(d.date)); })
+        .y(function(d) { return margin.top + y(d.amount); });
+
+    svg.append("path")
+            .attr("class", "line")
+            .attr("d", valueline(data));
+
+    svg.selectAll("circles")
+          .data(data)
+          .enter().append("circle")
+          .style("fill", "steelblue")
+          .attr("cx", function(d) { return margin.left + x(parseDate(d.date)); })
+          .attr("r", 3)
+          .attr("cy", function(d) { return margin.top + y(d.amount); });
+}
+
+</script>
+</body>

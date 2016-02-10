@@ -1,0 +1,10 @@
+var data = [
+      { client: '1', date: '2014-01-01', amount: 10 },
+      { client: '1', date: '2014-02-01', amount: 20 },
+      { client: '1', date: '2014-03-01', amount: 40 },
+      { client: '1', date: '2014-04-01', amount: 80 },
+    	{ client: '2', date: '2014-01-01', amount: 12 },
+      { client: '2', date: '2014-02-01', amount: 22 },
+      { client: '2', date: '2014-03-01', amount: 31 },
+      { client: '2', date: '2014-04-01', amount: 44 }
+];

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+</style>
+<body>
+<script src="/scripts/d3/d3.min.js"></script>
+<script>
+
+/*
+* Dati e Massimo valore per l'asse y
+*/
+var data = [
+      { date: '2014-01-01', amount: 10 },
+      { date: '2014-02-01', amount: 20 },
+      { date: '2014-03-01', amount: 40 },
+      { date: '2014-04-01', amount: 80 }
+    ];
+var max_y = d3.max(data, function(d, i) { return d.amount }); //80
+console.log(max_y);
+
+var max_min_y = d3.extent(data, function(d, i) { return d.amount }); //[10,80] = [min,max]
+console.log(max_min_y);
+
+var max_min_x = d3.extent(data, function(d, i){ return d.date }); //[min, max]
+console.log(max_min_x);
+
+
+/*
+* D3 ha un oggetto chiamato “scales” che aiuta a mappare i valori nel sistema di coordinate. Sono possibili tre tipi di scale: lineare, logaritmica e lineare per il tempo. Per configurare una scala dobbiamo specificare un dominio e un range. Il range rappresenta lo spazio in pixel disponibile (per l'asse y è l'altezza del grafico e per l'asse x è la lunghezza del grafico), mentre il dominio rappresenta il dominio dei dati da rappresentare (cioè valore minimo e massimo da mostrare nelle assi x e y).
+La chiamata a scale ritorna una FUNZIONE chiamata y, che dato il dato in input ritorna la posizione occupata nello spazio.
+*/
+var y = d3.scale.linear()
+  .domain([0, max_y]) // 0 to 80
+  .range([200, 0]); // altezza 200 - sembra al contrario poichè l'asse va dal basso in alto
+
+y(0); //200
+y(80); //0
+
+
+var x = d3.time.scale()
+    .domain([
+      new Date(Date.parse(max_min_x[0])),
+      new Date(Date.parse(max_min_x[1]))
+    ])
+    .range([0, 300]);
+
+x(new Date(Date.parse('2014-02-01'))); // 103.3811949976841 posizione pixel
+
+/*
+* Definiamo ora gli assi veri e propri. Utilizziamo la funzione svg.axis per dichiarare un nuovo asse.
+*/
+
+var xAxis = d3.svg.axis()
+  .scale(x)         // d3.time.scale() => dimensione in pixel
+  .orient('bottom') // orientamento delle label (sotto l'asse)
+  .ticks(4);        // number of ticks = 4 separatori
+
+var yAxis = d3.svg.axis()
+  .scale(y)
+  .orient('left')
+  .ticks(4);
+
+var svg = d3.select('body')
+    .append('svg')        // create <svg> element
+    .attr('width', 380) // dimension - il grafico ha bisogno di un po' di margine, altrimenti risulta tagliato
+    .attr('height', 280);
+
+svg.append('g')            // create <g> element
+  .attr('class', 'x axis') // css class
+  .attr('transform', 'translate(40,240)') // spostando leggermente gli assi di 40 pixel per creare un po’ di margine attorno ai nostri assi e traslando l’asse delle x a fondo grafico con l’attributo transform.
+  .call(xAxis);            // renderizza (ossia gli dico di disegnare l'asse x)
+
+svg.append('g')
+  .attr('class', 'y axis')
+  .attr('transform', 'translate(40,40)')
+  .call(yAxis);
+
+</script>
+</body>
